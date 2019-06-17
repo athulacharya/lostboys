@@ -65,18 +65,30 @@ def main():
         if(not old_follower in followers):
             lost_followers += [old_follower]
 
-    # get the full user data structure for each lost follower
+    # get the full user data structure for each lost follower, if the follower's account still exists
     lost_boys = []
+    very_lost_ids = []  # for IDs that return a user that doesn't exist
     for lost_follower in lost_followers:
-        lost_boy = api.get_user(lost_follower)
-        lost_boys += [lost_boy]
+        try:
+            lost_boy = api.get_user(lost_follower)
+            lost_boys += [lost_boy]
+        except tweepy.error.TweepError as err:
+            if err.api_code == 63 or err.code == 50:
+                very_lost_ids += [lost_follower]
+            else:
+                print("Error: " + err.response.text + " (" + err.api_code + ")\n")
 
     # if you lost followers, send you an email about it
-    if len(lost_boys) > 0:
+    if len(lost_boys) > 0 or len(very_lost_ids) > 0:
         # construct email
         body = "You have lost the following users: \n"
         for lost_boy in lost_boys:
             body += user_url(lost_boy.screen_name) + "\n"
+
+        if very_lost_ids != []:
+            body += "You also lost these IDs that I can't match up to a username: \n"
+            for lost_follower in very_lost_ids:
+                body += lost_follower + "\n"
 
         # send email
         message = create_message(SENDER, RECEIVER, "You lost some followers :(", body)
