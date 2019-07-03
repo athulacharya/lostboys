@@ -73,7 +73,7 @@ def main():
             lost_boy = api.get_user(lost_follower)
             lost_boys += [lost_boy]
         except tweepy.error.TweepError as err:
-            if err.api_code == 63 or err.code == 50:
+            if err.api_code == 63 or err.api_code == 50:
                 very_lost_ids += [lost_follower]
             else:
                 print("Error: " + err.response.text + " (" + err.api_code + ")\n")
@@ -88,7 +88,7 @@ def main():
         if very_lost_ids != []:
             body += "You also lost these IDs that I can't match up to a username: \n"
             for lost_follower in very_lost_ids:
-                body += lost_follower + "\n"
+                body += str(lost_follower) + "\n"
 
         # send email
         message = create_message(SENDER, RECEIVER, "You lost some followers :(", body)
